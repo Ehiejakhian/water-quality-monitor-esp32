@@ -1,0 +1,96 @@
+
+#include <LiquidCrystal.h>
+//Initialize lcd (RS,  E, D4, D5, D6, D7) 
+LiquidCrystal lcd(25, 26, 14, 27, 12, 13);
+
+float calibration_value = 21.34;
+int phval = 0; 
+unsigned long int avgval; 
+int buffer_arr[10],temp;
+
+int tdsPin = 36;
+int turbidityPin = 35;
+int phPin = 34; 
+
+int redLED = 9;//Red LED pin
+int grnLED = 10;//Green LED pin
+int bluLED = 11;//Blue LED pin
+
+void setup() {
+  pinMode(tdsPin, INPUT);
+  pinMode(turbidityPin, INPUT);
+  pinMode(phPin, INPUT);
+
+  pinMode(redLED, OUTPUT);
+  pinMode(grnLED, OUTPUT);
+  pinMode(bluLED, OUTPUT);
+
+  lcd.begin(16,2);
+  Serial.begin(9600);
+  Serial.print("Connected");
+}
+
+void loop() {
+  
+  //tds calculation
+  int tdsInput = analogRead(tdsPin);
+  float tdsVoltage = tdsInput * (3.3 / 4095.0);//Convert to volts
+  float tdsValue = (
+    133.42 * tdsVoltage * tdsVoltage - 255.86 * tdsVoltage * tdsVoltage + 857.39 * tdsVoltage) * 0.5;//Convert to 
+
+  //turbidity calculation
+  int turbidityInput = analogRead(turbidityPin);
+  float turbidityVoltage = turbidityInput * (3.3 / 4095.0);//Convert to volts
+  float turbidityValue;
+  if (turbidityVoltage >= 2.5) {
+    turbidityValue = 0;
+  } else {
+    turbidityValue = (3000.0 / turbidityVoltage) - 500.0;
+  } //Convert to NTU
+
+  //pH calculation
+  for(int i=0;i<10;i++) { 
+    buffer_arr[i]=analogRead(phPin);
+    delay(30);
+  }
+  for(int i=0;i<9;i++) {
+    for(int j=i+1;j<10;j++) {
+      if(buffer_arr[i]>buffer_arr[j]) {
+        temp=buffer_arr[i];
+        buffer_arr[i]=buffer_arr[j];
+        buffer_arr[j]=temp;
+      }
+    }
+  }
+  avgval=0;
+  for(int i=2;i<8;i++)
+  avgval+=buffer_arr[i];
+  float volt=(float)avgval*5.0/1024/6;
+  float phValue = -5.70 * volt + calibration_value;
+
+  ////Display on lcd
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("pH:");
+  lcd.print(phValue,0); 
+  lcd.print(" | TDS:");
+  lcd.print(tdsValue, 0);
+
+  lcd.setCursor(0, 1);
+  lcd.print("Turb: ");
+  lcd.print(turbidityValue, 0);
+  lcd.print(" NTU");
+
+  Serial.print("pH: ");
+  Serial.print(phValue);
+  Serial.print("   ");
+  Serial.print(" TDS: ");
+  Serial.print(tdsValue);
+  Serial.print("   ");
+  Serial.print("Turb: ");
+  Serial.println(turbidityValue);
+
+
+  delay(1000);
+}
+
