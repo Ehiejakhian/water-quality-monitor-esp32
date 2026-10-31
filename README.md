@@ -2,11 +2,11 @@
 
 A portable water quality monitor built on an ESP32. It reads **pH**, **TDS** (total dissolved solids) and **turbidity** (cloudiness) from three analog sensors and shows the results on a 16x2 LCD, with the same readings printed to the serial monitor.
 
-![Water quality testing device](./assets/water-quality-testing.jpg)
+![Water quality testing device](./assets/water-quality-monitor.jpg)
 
 > I lost all my vids on a device I lost. So this is all I've got.
 
-![Water quality testing device](./assets/water-quality-testing-error.jpg)
+![Water quality testing device](./assets/water-quality-monitor-error.jpg)
 > A common error I faced because I misconnected the `v0` pin, which eventually destroyed the lcd display.
 
 
